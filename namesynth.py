@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 LAST_LETTER_CANDIDATES_MAX = 5;
 
 initialized = False
@@ -161,12 +163,12 @@ def tripleLetterCheck(name):
             return False
     return True
 
-# Checks that the Damerau-Levenshtein distance of this name is within a given bias from a name on the master list.
+# Checks that the Damerau-Levenshtein distance of this name is within a 
+# given bias from a name on the master list.
 # @param    name    The name string.
 # @return    True if a name is found that is within the bias.
 def checkLevenshtein(name):
     import sys
-    global names
 
     levenshteinBias = len(name)/2
 
@@ -186,27 +188,17 @@ def checkLevenshtein(name):
             return True
     return False
 
-def pickRandomElementFromArray(string):
-    import random
-    return random.choice(string)
-
-def getRandomNextLetter(letter):
-    weightedLetter = letters[letter]
-    return pickRandomElementFromArray(weightedLetter.nextLetters.letterSamples)
-
-
 def main():
     from sys import argv
     import argparse
     import timeit
+    import random
 
     #print ("Within DL range: ", checkLevenshtein("test"))
     #print ("L: ", levenshtein("time","tiem"))
     #print ("L: ", timeit.timeit("levenshtein('e0zdvfb840174ut74j2v7gabx1 5bs', 'qpk5vei 4tzo0bglx8rl7e 2h4uei7')", setup="from __main__ import levenshtein", number=100), " seconds")
     #print ("DL:", dameraulevenshtein("time","tiem"))
     #print ("DL:",timeit.timeit("dameraulevenshtein('e0zdvfb840174ut74j2v7gabx1 5bs', 'qpk5vei 4tzo0bglx8rl7e 2h4uei7')", setup="from __main__ import dameraulevenshtein", number=100), " seconds")
-    #print ("Random letter:", pickRandomElementFromArray("levenshtein"))
-
 
     ######### init ##########
     for i in range(0, len(names)):
@@ -261,22 +253,23 @@ def main():
         name = []
 
         # Pick size
-        size = pickRandomElementFromArray(sizes)
+        size = random.choice(sizes)
 
         # Pick first letter
-        firstLetter = pickRandomElementFromArray(firstLetterSamples)
+        firstLetter = random.choice(firstLetterSamples)
         name.append(firstLetter);
 
         for i in range(1, size-1):
             # Only continue if the last letter added was non-null
-            if name[i-1] != None:
-                name.append(getRandomNextLetter(name[i - 1]))
+            if name[i-1]:
+                weightedLetter = letters[name[i - 1]]
+                name.append(random.choice(weightedLetter.nextLetters.letterSamples))
             else:
                 break
 
         # Attempt to find a last letter
         for lastLetterFits in range(0, LAST_LETTER_CANDIDATES_MAX):
-            lastLetter = pickRandomElementFromArray(lastLetterSamples)
+            lastLetter = random.choice(lastLetterSamples)
             intermediateLetterCandidate = getIntermediateLetter(name[len(name) - 1], lastLetter)
 
             # Only attach last letter if the candidate is valid
@@ -288,7 +281,8 @@ def main():
 
         nameString = "".join(name)
 
-        # Check that the word has no triple letter sequences, and that the Levenshtein distance is kosher
+        # Check that the word has no triple letter sequences
+        # and that the Levenshtein distance is withen an accepted bias
         if tripleLetterCheck(name) and checkLevenshtein(nameString):
             result.append(nameString)
             # Only increase the counter if we've successfully added a name
@@ -299,4 +293,6 @@ def main():
 
 
 if __name__ == '__main__':
+    #import cProfile
+    #cProfile.run('ex = main()')
     main()
